@@ -1,4 +1,3 @@
-import boto3
 import os
 from langchain.prompts import PromptTemplate 
 from langchain.chains import ConversationChain
@@ -55,16 +54,10 @@ async def setup_agent(settings):
     global bedrock_model_id
     bedrock_model_id = settings["Model"]
     
-    # LangChain v0.0.305 がリリースされるまでの暫定対応
-    bedrock_runtime = boto3.client(
-        service_name="bedrock-runtime",
-        region_name="us-east-1"
-    )
     # Instantiate the chain for user session
     llm = Bedrock(
         region_name=aws_region,
         model_id=bedrock_model_id,
-        client=bedrock_runtime,
         model_kwargs={"temperature": settings["Temperature"]}
     )
     
