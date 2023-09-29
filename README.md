@@ -2,9 +2,13 @@
 ## Overview
 Sample chatbot application to experience Amazon Bedrock, using Chainlit and LangChain.
 
-You can interact with the AI assistant while switching between multiple models. Please ensure you enable access to each model in Amazon Bedrock beforehand.
-
 ![](https://raw.githubusercontent.com/hayao-k/Bedrock-AIChatbot-Sample/main/images/overview.png)
+
+You can interact with the AI assistant while switching between multiple models. 
+
+![](https://raw.githubusercontent.com/hayao-k/Bedrock-AIChatbot-Sample/main/images/multiple-models.png)
+
+Please ensure you enable access to each model in Amazon Bedrock beforehand.
 
 ## Getting Started
 Deploy to AWS App Runner using AWS Copilot CLI.
