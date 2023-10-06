@@ -25,6 +25,7 @@ async def main():
                 values=[
                     "anthropic.claude-v2", 
                     "ai21.j2-ultra", 
+                    "cohere.command-text-v14",
                     "amazon.titan-text-express-v1"
                 ],
                 initial_index=0,
@@ -77,6 +78,8 @@ async def setup_agent(settings):
         llm.model_kwargs["max_tokens_to_sample"] = MAX_TOKEN_SIZE
     elif provider == "ai21":
         llm.model_kwargs["maxTokens"] = MAX_TOKEN_SIZE
+    elif provider == "cohere":
+        llm.model_kwargs["max_tokens"] = MAX_TOKEN_SIZE    
     elif provider == "amazon":
         # Titan supports English only
         intruction_message = "Please pay close attention to my instructions."
