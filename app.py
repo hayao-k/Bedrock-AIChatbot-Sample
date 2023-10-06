@@ -1,4 +1,5 @@
 import os
+import boto3
 from langchain.prompts import PromptTemplate 
 from langchain.chains import ConversationChain
 from langchain.memory import ConversationBufferMemory
@@ -7,7 +8,7 @@ import chainlit as cl
 from chainlit.input_widget import Select, Slider
 from prompt_template import get_template
 
-aws_region = os.environ["AWS_REGION"]
+AWS_REGION = os.environ["AWS_REGION"]
 
 @cl.author_rename
 def rename(orig_author: str):
@@ -18,18 +19,23 @@ def rename(orig_author: str):
 
 @cl.on_chat_start
 async def main():
+    bedrock = boto3.client("bedrock", region_name=AWS_REGION)
+    
+    response = bedrock.list_foundation_models(
+        byOutputModality="TEXT"
+    )
+    
+    model_ids = []
+    for item in response["modelSummaries"]:
+        model_ids.append(item['modelId'])
+    
     settings = await cl.ChatSettings(
         [
             Select(
                 id="Model",
                 label="Amazon Bedrock - Model",
-                values=[
-                    "anthropic.claude-v2", 
-                    "ai21.j2-ultra", 
-                    "cohere.command-text-v14",
-                    "amazon.titan-text-express-v1"
-                ],
-                initial_index=0,
+                values=model_ids,
+                initial_index=10,
             ),
             Slider(
                 id="Temperature",
@@ -58,7 +64,7 @@ async def setup_agent(settings):
     
     # Instantiate the chain for user session
     llm = Bedrock(
-        region_name=aws_region,
+        region_name=AWS_REGION,
         model_id=bedrock_model_id,
         model_kwargs={"temperature": settings["Temperature"]}
     )
@@ -88,7 +94,6 @@ async def setup_agent(settings):
         prompt=prompt, 
         llm=llm, 
         memory=ConversationBufferMemory(
-            # Anthropic requires the prefix to be "Assistant":
             ai_prefix=ai_prefix
         ),
         verbose=True

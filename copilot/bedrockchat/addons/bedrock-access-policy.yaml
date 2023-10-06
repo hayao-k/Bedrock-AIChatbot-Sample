@@ -21,6 +21,7 @@ Resources:
           Action:
             - "bedrock:InvokeModel"
             - "bedrock:InvokeModelWithResponseStream"
+            - "bedrock:ListFoundationModels"
           Resource: "*"
 
 Outputs:

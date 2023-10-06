@@ -1,20 +1,18 @@
 # AI Chatbot powered by Amazon Bedrock 🚀🤖
 
 ## About
-Chainlit + LangChain + Bedrock なサンプルアプリケーションです。  
-Settings panel からモデルやパラメーターを設定できます。
+Sample chatbot application to experience Amazon Bedrock, using Chainlit and LangChain.
+You can interact with the AI assistant while switching between multiple models.
 
-### 選択可能なモデル
-デフォルト: `anthropic.claude-v2`
+### Models
+Default: `anthropic.claude-v2`
 
-| Model Name | Model Provider | Model ID | Japanese Support |
-| :--- | :--- | :--- | :--- |
-| Claude v2 | Athropic | `anthropic.claude-v2` | Yes |
-| Jurassic-2 Ultra v1 | AI21 Labs | `ai21.j2-ultra` | Yes |
-| Command v14.6 | Cohere | `cohere.command-text-v14` | Yes |
-| Titan Text G1 - Express v1 | Amazon | `amazon.titan-text-express-v1` | No |
+* Claude by Athropic
+* Jurassic-2 by AI21 Labs
+* Command by Cohere
+* Titan Text by Amazon
 
-### パラメーター
-**Temperature:** デフォルト: 0.3  
+### Parameters
+**Temperature:** Default: 0.3  
 
-**Max Token Size:** デフォルト: 1024  
+**Max Token Size:** Default: 1024  
