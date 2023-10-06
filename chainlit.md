@@ -1,7 +1,7 @@
 # AI Chatbot powered by Amazon Bedrock 🚀🤖
 
 ## About
-Sample chatbot application to experience Amazon Bedrock, using Chainlit and LangChain.
+Sample chatbot application to experience Amazon Bedrock, using Chainlit and LangChain.  
 You can interact with the AI assistant while switching between multiple models.
 
 ### Models
