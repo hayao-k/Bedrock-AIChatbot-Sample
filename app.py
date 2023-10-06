@@ -5,6 +5,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain.llms.bedrock import Bedrock
 import chainlit as cl
 from chainlit.input_widget import Select, Slider
+from prompt_template import get_template
 
 aws_region = os.environ["AWS_REGION"]
 
@@ -62,13 +63,7 @@ async def setup_agent(settings):
         model_kwargs={"temperature": settings["Temperature"]}
     )
     
-    base_template = """\n
-    {history}
-    Human: {input}
-    Assistant:"""
-    
-    intruction_message = "ユーザーの指示には注意深く従ってください"
-    
+    ai_prefix="AI"
     provider = bedrock_model_id.split(".")[0]
     # Slider の設定値の型が float のため、明示的に int にする
     MAX_TOKEN_SIZE = int(settings["MAX_TOKEN_SIZE"])
@@ -76,19 +71,16 @@ async def setup_agent(settings):
     # モデルによってトークンサイズの指定方法が異なる
     if provider == "anthropic":
         llm.model_kwargs["max_tokens_to_sample"] = MAX_TOKEN_SIZE
+        ai_prefix="Assistant"
     elif provider == "ai21":
         llm.model_kwargs["maxTokens"] = MAX_TOKEN_SIZE
     elif provider == "cohere":
         llm.model_kwargs["max_tokens"] = MAX_TOKEN_SIZE    
     elif provider == "amazon":
-        # Titan supports English only
-        intruction_message = "Please pay close attention to my instructions."
         llm.model_kwargs["maxTokenCount"] = MAX_TOKEN_SIZE
 
-    template = intruction_message + base_template
-    
     prompt = PromptTemplate(
-        template=template,
+        template=get_template(provider),
         input_variables=["history", "input"],
     )
     
@@ -97,13 +89,12 @@ async def setup_agent(settings):
         llm=llm, 
         memory=ConversationBufferMemory(
             # Anthropic requires the prefix to be "Assistant":
-            ai_prefix="Assistant"
+            ai_prefix=ai_prefix
         ),
         verbose=True
     )
     # Store the chain in the user session
     cl.user_session.set("llm_chain", conversation)
-
 
 @cl.on_message
 async def main(message: str):
