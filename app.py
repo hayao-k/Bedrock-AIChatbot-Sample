@@ -35,7 +35,7 @@ async def main():
                 id="Model",
                 label="Amazon Bedrock - Model",
                 values=model_ids,
-                initial_index=10,
+                initial_index=model_ids.index("anthropic.claude-v2"),
             ),
             Slider(
                 id="Temperature",
@@ -69,7 +69,9 @@ async def setup_agent(settings):
         model_kwargs={"temperature": settings["Temperature"]}
     )
     
+    human_prefix="Human"
     ai_prefix="AI"
+
     provider = bedrock_model_id.split(".")[0]
     # Slider の設定値の型が float のため、明示的に int にする
     MAX_TOKEN_SIZE = int(settings["MAX_TOKEN_SIZE"])
@@ -77,7 +79,8 @@ async def setup_agent(settings):
     # モデルによってトークンサイズの指定方法が異なる
     if provider == "anthropic":
         llm.model_kwargs["max_tokens_to_sample"] = MAX_TOKEN_SIZE
-        ai_prefix="Assistant"
+        human_prefix="H"
+        ai_prefix="A"
     elif provider == "ai21":
         llm.model_kwargs["maxTokens"] = MAX_TOKEN_SIZE
     elif provider == "cohere":
@@ -94,6 +97,7 @@ async def setup_agent(settings):
         prompt=prompt, 
         llm=llm, 
         memory=ConversationBufferMemory(
+            human_prefix=human_prefix,
             ai_prefix=ai_prefix
         ),
         verbose=True
