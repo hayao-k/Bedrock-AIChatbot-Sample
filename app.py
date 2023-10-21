@@ -102,13 +102,13 @@ async def setup_agent(settings):
     cl.user_session.set("llm_chain", conversation)
 
 @cl.on_message
-async def main(message: str):
+async def main(message: cl.Message):
     # Retrieve the chain from the user session
     conversation = cl.user_session.get("llm_chain") 
 
     # Call the chain asynchronously
     res = await conversation.acall(
-        message, 
+        message.content, 
         callbacks=[cl.AsyncLangchainCallbackHandler()]
     )
     
