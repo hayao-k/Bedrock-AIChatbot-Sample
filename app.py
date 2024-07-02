@@ -1,32 +1,24 @@
-import io
+import mimetypes
 import os
 import re
 
-from base64 import b64encode
 from operator import itemgetter
+from pathlib import Path
 
 import boto3
-from PIL import Image
 import chainlit as cl
 from chainlit.input_widget import Select, Slider
 from langchain.memory import ConversationBufferMemory
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.schema import StrOutputParser
-from langchain.schema.runnable import RunnablePassthrough, RunnableLambda
-from langchain.schema.runnable.config import RunnableConfig
-from langchain_aws import ChatBedrock
+from langchain_aws import ChatBedrockConverse
 from langchain_core.messages import HumanMessage
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables import RunnableConfig, RunnableLambda, RunnablePassthrough
 
 AWS_REGION = os.environ["AWS_REGION"]
+EXCLUDE_MODELS = ['meta.llama2-13b-v1', 'meta.llama2-70b-v1']
 PATTERN = re.compile(r'v\d+(?!.*\d[kK]$)')
 PROVIDER = ""
-
-TOKEN_PARAM_BY_PROVIDER = {
-    "ai21": "maxTokens",
-    "amazon": "maxTokenCount",
-    "meta": "max_gen_len",
-    "default": "max_tokens"  # Anthropic, Cohere, Mistral
-}
 
 @cl.on_chat_start
 async def main():
@@ -40,7 +32,7 @@ async def main():
     model_ids = [
         item['modelId']
         for item in response["modelSummaries"]
-        if PATTERN.search(item['modelId'])
+        if PATTERN.search(item['modelId']) and item['modelId'] not in EXCLUDE_MODELS
     ]
 
     settings = await cl.ChatSettings(
@@ -50,7 +42,7 @@ async def main():
                 label="Amazon Bedrock - Model",
                 values=model_ids,
                 initial_index=model_ids.index(
-                    "anthropic.claude-3-sonnet-20240229-v1:0"
+                    "anthropic.claude-3-5-sonnet-20240620-v1:0"
                 ),
             ),
             Slider(
@@ -64,7 +56,7 @@ async def main():
             Slider(
                 id="MAX_TOKEN_SIZE",
                 label="Max Token Size",
-                initial=1024,
+                initial=2048,
                 min=256,
                 max=8192,
                 step=256,
@@ -83,20 +75,14 @@ async def setup_runnable(settings):
 
     bedrock_model_id = settings["Model"]
 
-    llm = ChatBedrock(
-        model_id=bedrock_model_id,
-        model_kwargs={"temperature": settings["Temperature"]}
+    llm = ChatBedrockConverse(
+        model=bedrock_model_id,
+        temperature=settings["Temperature"],
+        max_tokens=int(settings["MAX_TOKEN_SIZE"])
     )
 
-    # モデルによってトークンサイズの指定方法が異なる
     global PROVIDER
     PROVIDER = bedrock_model_id.split(".")[0]
-
-    token_param = TOKEN_PARAM_BY_PROVIDER.get(
-        PROVIDER, TOKEN_PARAM_BY_PROVIDER["default"]
-    )
-
-    llm.model_kwargs[token_param] = int(settings["MAX_TOKEN_SIZE"])
 
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -116,44 +102,44 @@ async def setup_runnable(settings):
     )
     cl.user_session.set("runnable", runnable)
 
-def encode_image_to_base64(image, image_format):
-    buffer = io.BytesIO()
-    image.save(buffer, format=image_format)
-    return b64encode(buffer.getvalue()).decode("utf-8")
-
 @cl.on_message
 async def on_message(message: cl.Message):
 
     memory = cl.user_session.get("memory")
     runnable = cl.user_session.get("runnable")
 
-    # Anthropic モデルの場合のみ、画像を処理する
-    if PROVIDER == "anthropic":
-        content = []
+    content = []
+    for file in (message.elements or []):
+        mime_type, _ = mimetypes.guess_type(file.name)
 
-        for file in (message.elements or []):
-            if file.path and "image" in file.mime:
-                image = Image.open(file.path)
-                bs64 = encode_image_to_base64(
-                    image,
-                    file.mime.split('/')[-1].upper() # 画像フォーマットを渡す
-                )
+        file_name_path = Path(file.name)
+        file_name = file_name_path.stem.replace('.', '-')
+        file_format = file_name_path.suffix.lstrip('.')
+
+        with open(file.path, "rb") as f:
+            file_data = f.read()
+
+        if mime_type:
+            if mime_type.startswith("image"):
                 content.append({
-                    "type": "image",
-                    "source": {
-                        "type": "base64",
-                        "media_type": file.mime,
-                        "data": bs64
+                    "image": {
+                        "format": file_format,
+                        "source": {"bytes": file_data}
                     }
                 })
+            elif mime_type.startswith("application") or mime_type.startswith("text"):
+                content.append({
+                    "document": {
+                        "name": file_name,
+                        "format": file_format, 
+                        "source": {"bytes": file_data}
+                    }
+                })
+    content_text = {"type": "text", "text": message.content}
+    content.append(content_text)
+    runnable_message_data = {"human_message": [HumanMessage(content=content)]}
 
-        content_text = {"type": "text", "text": message.content}
-        content.append(content_text)
-        runnable_message_data = {"human_message": [HumanMessage(content=content)]}
-    else:
-        runnable_message_data = {"human_message": [HumanMessage(content=message.content)]}
-
-    res = cl.Message(content="", author=f'Chatbot: {PROVIDER.capitalize()}')
+    res = cl.Message(content="", author=f'Assistant: {PROVIDER.capitalize()}')
 
     async for chunk in runnable.astream(
         runnable_message_data,

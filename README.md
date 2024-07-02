@@ -13,6 +13,7 @@ Please ensure you enable access to each model in Amazon Bedrock beforehand.
 ## Features
 - **Customizable Chat Settings**: Through Chainlit, it offers a user-friendly interface to select models and adjust settings before initializing the chat.
 - **Model Selection**: Amazon Bedrock model list is automatically retrieved and can be selected.
+- **Document Chat**: Please refer to the [official documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html#conversation-inference-supported-models-features) for the support status of each model.
 - **Image Processing (Anthropic Models Only)**: Supports image input for Claude 3 models.
 
 ## Prerequisites
