@@ -3,11 +3,14 @@
 ## About
 Sample chatbot application to experience Amazon Bedrock, using Chainlit and LangChain.  
 You can interact with the AI assistant while switching between multiple models.
-Only Claude 3 supports multimodal input (image files).
+The Converse API supports Document Chat and Vision (image file input). 
+Please refer to the official documentation for the support status of each model.
+
+[Supported models and model features](https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html#conversation-inference-supported-models-features)
 
 ### Models
 Automatically retrieves the IDs of text models available from the ListFoundationModels API. 
-The default value is Claude v3 Sonnet (`anthropic.claude-3-sonnet-20240229-v1:0`).
+The default value is Claude v3 Sonnet (`anthropic.claude-3-5-sonnet-20240620-v1:0`).
 
 * Titan by Amazon
 * Jurassic-2 by AI21 Labs
@@ -18,5 +21,4 @@ The default value is Claude v3 Sonnet (`anthropic.claude-3-sonnet-20240229-v1:0`
 
 ### Parameters
 **Temperature:** Default: 0.3  
-
-**Max Token Size:** Default: 1024  
+**Max Token Size:** Default: 2048

@@ -1,6 +1,4 @@
-boto3 >= 1.34.87 
-chainlit == 1.0.506
-langchain >= 0.1.16
-langchain-community >= 0.0.33
-langchain-aws >= 0.1.0
-pillow >= 10.3.0
+boto3 >= 1.34.136
+chainlit == 1.1.305
+langchain >= 0.2.6
+langchain-aws >= 0.1.8
