@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.14.0a3-slim
 WORKDIR /app
 
 RUN useradd -m bedrock && chown -R bedrock /app
